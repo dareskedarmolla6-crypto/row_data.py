@@ -1,4 +1,34 @@
+import random
+
 def process_data(raw_data):
-    """ጥሬ መረጃን ለማቀናበር"""
-    print("Processing market data...")
-    return raw_data
+    """
+    Raw market data processing
+    """
+    
+    processed_data = {
+        "symbol": raw_data.get("symbol", "UNKNOWN"),
+        "price_change": raw_data.get(
+            "price_change",
+            random.uniform(-3, 3)
+        ),
+        "volume": raw_data.get(
+            "volume",
+            random.uniform(0, 100)
+        )
+    }
+
+    return processed_data
+
+
+def market_feed(symbol):
+    """
+    Simulated market feed
+    """
+    
+    raw_data = {
+        "symbol": symbol,
+        "price_change": random.uniform(-3, 3),
+        "volume": random.uniform(0, 100)
+    }
+
+    return process_data(raw_data)
