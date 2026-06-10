@@ -1,0 +1,4 @@
+def process_data(raw_data):
+    """ጥሬ መረጃን ለማቀናበር"""
+    print("Processing market data...")
+    return raw_data
