@@ -1,3 +1,4 @@
+
 class Strategy:
     def build(self, signal, confidence):
         if confidence < 60:
