@@ -1,1 +1,0 @@
--> def calc(a): return a * 0.05
