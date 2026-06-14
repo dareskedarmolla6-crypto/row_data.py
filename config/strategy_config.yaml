@@ -89,3 +89,8 @@ logging:
   error_logs: true
   performance_logs: true
 # Ensure strategy
+# Ensure strategy aligns with global risk config (prevents conflicting trading behavior)
+sync_with_risk_config: true
+
+# Enforce alpha-only mode consistency across system
+enforce_alpha_mode: true
