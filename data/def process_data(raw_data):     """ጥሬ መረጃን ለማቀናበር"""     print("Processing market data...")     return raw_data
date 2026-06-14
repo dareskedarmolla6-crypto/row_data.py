@@ -1,34 +1,51 @@
-import random
+import time
 
-def process_data(raw_data):
+
+class RawDataStore:
     """
-    Raw market data processing
+    Stores raw market data before processing by brain/strategy.
+    Used for:
+    - backtesting
+    - signal validation
+    - debugging
     """
-    
-    processed_data = {
-        "symbol": raw_data.get("symbol", "UNKNOWN"),
-        "price_change": raw_data.get(
-            "price_change",
-            random.uniform(-3, 3)
-        ),
-        "volume": raw_data.get(
-            "volume",
-            random.uniform(0, 100)
-        )
-    }
 
-    return processed_data
+    def __init__(self):
+        self.buffer = []
 
+    # =========================
+    # ADD RAW MARKET DATA
+    # =========================
+    def add(self, symbol: str, data: dict):
+        self.buffer.append({
+            "symbol": symbol,
+            "data": data,
+            "ts": int(time.time())
+        })
 
-def market_feed(symbol):
-    """
-    Simulated market feed
-    """
-    
-    raw_data = {
-        "symbol": symbol,
-        "price_change": random.uniform(-3, 3),
-        "volume": random.uniform(0, 100)
-    }
+    # =========================
+    # GET ALL RAW DATA
+    # =========================
+    def get_all(self):
+        return self.buffer
 
-    return process_data(raw_data)
+    # =========================
+    # GET LAST N RECORDS
+    # =========================
+    def get_last(self, n=50):
+        return self.buffer[-n:]
+
+    # =========================
+    # CLEAR BUFFER
+    # =========================
+    def clear(self):
+        self.buffer = []
+
+    # =========================
+    # FILTER BY SYMBOL
+    # =========================
+    def get_by_symbol(self, symbol: str):
+        return [
+            item for item in self.buffer
+            if item["symbol"] == symbol
+        ]
