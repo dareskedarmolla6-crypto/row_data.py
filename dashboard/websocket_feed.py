@@ -125,3 +125,11 @@ class WebSocketFeedEngine:
     def stop(self):
         self.running = False
         self.feed.running = False
+# Safety improvement: ensure stream stops cleanly on engine stop
+def safe_stop(self):
+    self.stop()
+    self.feed.running = False
+    self.dashboard.clients.clear()
+
+# Optional safeguard: prevent NONE signal spam in production
+MAX_NONE_SIGNALS = 3
