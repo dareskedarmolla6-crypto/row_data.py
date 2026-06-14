@@ -30,3 +30,11 @@ class MarketDataStream:
 
     def get(self, symbol):
         return self.source.get(symbol)
+# Safety improvement: prevent None returns breaking pipeline
+def safe_get(self, symbol):
+    data = self.get(symbol)
+    return data if data is not None else {
+        "price_change": 0,
+        "volume": 0,
+        "volatility": 0
+    }
