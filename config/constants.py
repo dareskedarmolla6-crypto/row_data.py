@@ -132,3 +132,5 @@ ORDER_FAILED = "FAILED"
 LOG_INFO = "INFO"
 LOG_WARNING = "WARNING"
 LOG_ERROR = "ERROR"
+# fallback symbol (used only when no market scanner selection exists)
+DEFAULT_SYMBOL = "DOGEUSDT"
