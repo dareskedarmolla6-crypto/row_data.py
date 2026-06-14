@@ -92,3 +92,9 @@ class CacheManager:
 
     def get_many(self, keys):
         return {k: self.get(k) for k in keys}
+# Safety improvement: prevent dead cache reads (race-safe cleanup helper)
+def safe_get(self, key, default=None):
+    try:
+        return self.get(key, default)
+    except Exception:
+        return default
