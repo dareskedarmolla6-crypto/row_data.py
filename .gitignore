@@ -1,4 +1,74 @@
-# Ignore sensitive configuration files
-config/settings.py
+# =========================
+# Python
+# =========================
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+
+# =========================
+# Environment variables (VERY IMPORTANT for bot security)
+# =========================
+.env
+.env.local
+.env.production
+
+# =========================
+# API KEYS / SECRETS (CRITICAL)
+# =========================
+api_keys.json
+keys.json
+secret.txt
+
+# =========================
+# IDE / Editor files
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# System files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Cache / build
+# =========================
+.cache/
+build/
+dist/
+*.egg-info/
+
+# =========================
+# Test / Backtest outputs
+# =========================
+backtest_results/
+results/
+*.csv
+*.xlsx
+
+# =========================
+# Docker (if later used)
+# =========================
+docker-compose.override.yml
+
+# =========================
+# Telegram / runtime state
+# =========================
+session.json
+runtime_state.json
