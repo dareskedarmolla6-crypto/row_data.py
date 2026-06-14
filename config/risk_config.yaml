@@ -1,1 +1,60 @@
-Ehggnter
+# ======================================================
+# FSE RISK MANAGEMENT CONFIGURATION
+# ======================================================
+
+risk:
+
+  # Trade Entry Rules
+  min_confidence: 15
+  max_open_positions: 18
+
+  # Position Risk
+  max_capital_per_trade_percent: 10
+  max_total_exposure_percent: 80
+
+  # Loss Protection
+  max_daily_loss_percent: 10
+  emergency_stop_loss_percent: 15
+
+  # Leverage Rules
+  leverage:
+    enabled: true
+    max_leverage: 30
+
+    levels:
+      "15-25": 5
+      "26-35": 8
+      "36-55": 10
+      "56-75": 15
+      "76-85": 20
+      "86-100": 30
+
+  # Volatility Filter
+  alpha_filter:
+    enabled: true
+    min_volatility_percent: 15
+    rotate_low_volatility_coins: true
+
+  # Trading Modes
+  strategy:
+    long_enabled: true
+    short_enabled: true
+    hedge_enabled: true
+    grid_enabled: true
+
+  # Hedge Risk Control
+  hedge:
+    max_pairs: 5
+    reduce_position_size: true
+
+  # Take Profit & Protection
+  profit_management:
+    partial_take_profit: true
+    profit_lock: true
+    trailing_stop: true
+
+  # System Safety
+  safety:
+    stop_on_exchange_error: true
+    stop_on_api_failure: false
+    require_balance_check: true
