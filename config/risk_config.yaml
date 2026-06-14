@@ -58,3 +58,8 @@ risk:
     stop_on_exchange_error: true
     stop_on_api_failure: false
     require_balance_check: true
+# Ensure minimum confidence rule is enforced globally (must match constants.py)
+enforce_min_confidence: true
+
+# Sync leverage map strictly with constants configuration
+sync_leverage_with_constants: true
