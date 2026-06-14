@@ -1,4 +1,37 @@
-ccxt
-pandas
-requests
-python-dotenv
+# =========================
+# CORE
+# =========================
+python-dotenv==1.0.1
+requests==2.32.3
+
+# =========================
+# ASYNC / SYSTEM
+# =========================
+aiohttp==3.9.5
+asyncio
+
+# =========================
+# BINANCE API
+# =========================
+python-binance==1.0.19
+
+# =========================
+# TELEGRAM BOT
+# =========================
+python-telegram-bot==21.6
+
+# =========================
+# DATA / ANALYSIS (optional but useful)
+# =========================
+numpy==2.0.1
+pandas==2.2.2
+
+# =========================
+# LOGGING / UTILS
+# =========================
+loguru==0.7.2
+
+# =========================
+# OPTIONAL (for future AI upgrade)
+# =========================
+scikit-learn==1.5.1
