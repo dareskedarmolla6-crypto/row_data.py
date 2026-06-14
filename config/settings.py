@@ -38,3 +38,7 @@ class Settings:
         (76, 85): 20,
         (86, 100): 30
     }
+# Safety guard: ensure settings align with core constants (prevents mismatch bugs)
+assert MIN_LEVERAGE == 5
+assert MAX_LEVERAGE == 30
+assert CONFIDENCE_THRESHOLD >= 15
