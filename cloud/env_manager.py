@@ -143,3 +143,7 @@ config = ConfigLoader(env_manager).load()
 def print_config():
     print("===== FSE CONFIG =====")
     print(json.dumps(config.__dict__, indent=4))
+# Safety guard: ensure required crypto credentials exist before runtime starts
+def validate_runtime_env():
+    env_manager.require("BINANCE_API_KEY")
+    env_manager.require("BINANCE_API_SECRET")
