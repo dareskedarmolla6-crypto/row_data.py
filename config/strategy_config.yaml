@@ -88,3 +88,4 @@ logging:
   trade_logs: true
   error_logs: true
   performance_logs: true
+# Ensure strategy
