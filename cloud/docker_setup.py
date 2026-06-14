@@ -94,3 +94,13 @@ if __name__ == "__main__":
 
     setup.build_image()
     setup.run_container()
+# Safety improvement: ensure container restart does not duplicate running instances
+def safe_restart(self):
+    self.stop_container()
+    self.run_container()
+
+# Optional: basic health check after startup
+def check_container_status(self):
+    cmd = ["docker", "ps", "-f", f"name={self.container_name}"]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    return self.container_name in result.stdout
