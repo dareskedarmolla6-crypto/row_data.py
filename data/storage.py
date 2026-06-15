@@ -1,13 +1,14 @@
+
+# fse/data/storage_handler.py
 import json
 import time
+import logging
 
+logger = logging.getLogger(__name__)
 
 class InMemoryStore:
     """
-    Simple storage layer for FSE bot:
-    - system status
-    - trades
-    - positions
+    የቦቱ ማህደረ ትውስታ (System State, Trades, Positions)።
     """
 
     def __init__(self):
@@ -60,31 +61,38 @@ class InMemoryStore:
         return self.data["logs"]
 
     # =========================
-    # ACTIVE TRADES (for reliability engine)
+    # RELIABILITY ENGINE
     # =========================
     def get_active_trades(self):
-        return [
-            t for t in self.data["trades"]
-            if t.get("status") != "CLOSED"
-        ]
+        return [t for t in self.data["trades"] if t.get("status") != "CLOSED"]
 
     # =========================
-    # OPTIONAL: SAVE TO FILE
+    # FILE I/O WITH SAFETY GUARDS
     # =========================
     def save_to_file(self, path="fse_storage.json"):
-        with open(path, "w") as f:
-            json.dump(self.data, f, indent=4)
+        """ውሂብን በደህና ወደ ፋይል መጻፍ።"""
+        try:
+            with open(path, "w") as f:
+                json.dump(self.data, f, indent=4)
+            logger.info(f"✅ Data saved to {path}")
+        except Exception as e:
+            logger.error(f"❌ Failed to save data: {e}")
+            raise
+
+    def safe_save_to_file(self, path="fse_storage.json"):
+        """የተበላሸ ፋይል እንዳይፈጠር Backup መስሪያ።"""
+        backup_path = path + ".backup"
+        try:
+            self.save_to_file(path)
+        except Exception:
+            logger.warning("⚠️ Primary save failed. Saving to backup...")
+            self.save_to_file(backup_path)
 
     def load_from_file(self, path="fse_storage.json"):
+        """ከፋይል ውሂብን መጫን።"""
         try:
             with open(path, "r") as f:
                 self.data = json.load(f)
-        except FileNotFoundError:
-            pass
-# Safety improvement: prevent corrupted JSON overwrite (backup fallback)
-def safe_save_to_file(self, path="fse_storage.json"):
-    backup_path = path + ".backup"
-    try:
-        self.save_to_file(path)
-    except Exception:
-        self.save_to_file(backup_path)
+            logger.info("✅ Data loaded successfully.")
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            logger.error(f"❌ Failed to load data: {e}")
