@@ -1,25 +1,25 @@
+
 # ======================================================
-# FSE RISK MANAGEMENT CONFIGURATION
+# FSE RISK MANAGEMENT CONFIGURATION (CORE SYSTEM)
 # ======================================================
 
 risk:
-
-  # Trade Entry Rules
+  # Trade Entry Rules (መርህ #4 & #9)
   min_confidence: 15
-  max_open_positions: 18
+  max_open_positions: 20  # ወደ 20 ከፍ ብሏል
 
-  # Position Risk
-  max_capital_per_trade_percent: 10
+  # Position Risk (መርህ #7 - ካፒታል ምደባ)
+  max_capital_per_trade_percent: 5 # ሪስክን ለመቀነስ ከ10 ወደ 5 ዝቅ ብሏል
   max_total_exposure_percent: 80
 
-  # Loss Protection
+  # Loss Protection (መርህ #11 - Liquidity & Guard)
   max_daily_loss_percent: 10
   emergency_stop_loss_percent: 15
 
-  # Leverage Rules
+  # Leverage Rules (መርህ #8 - Adaptive Leverage)
   leverage:
     enabled: true
-    max_leverage: 30
+    max_leverage: 35 # የቦትህን ከፍተኛ አቅም (35x) መሠረት ያደረገ
 
     levels:
       "15-25": 5
@@ -27,9 +27,9 @@ risk:
       "36-55": 10
       "56-75": 15
       "76-85": 20
-      "86-100": 30
+      "86-100": 35 # ማስተካከያ ተደርጓል
 
-  # Volatility Filter
+  # Volatility Filter (መርህ #3 & #4)
   alpha_filter:
     enabled: true
     min_volatility_percent: 15
@@ -39,8 +39,8 @@ risk:
   strategy:
     long_enabled: true
     short_enabled: true
-    hedge_enabled: true
-    grid_enabled: true
+    hedge_enabled: true # መርህ #2
+    grid_enabled: true  # መርህ #5
 
   # Hedge Risk Control
   hedge:
@@ -56,10 +56,9 @@ risk:
   # System Safety
   safety:
     stop_on_exchange_error: true
-    stop_on_api_failure: false
+    stop_on_api_failure: true # ስህተት ሲኖር መቆም አለበት
     require_balance_check: true
-# Ensure minimum confidence rule is enforced globally (must match constants.py)
-enforce_min_confidence: true
 
-# Sync leverage map strictly with constants configuration
+# Integration Rules
+enforce_min_confidence: true
 sync_leverage_with_constants: true
