@@ -1,103 +1,79 @@
+
+# fse/utils/validators.py
 import re
 import logging
 
-logger = logging.getLogger("FSE")
-
+logger = logging.getLogger("FSE.Validators")
 
 # =========================
-# SYMBOL VALIDATION
+# VALIDATORS (CORE INTEGRITY)
 # =========================
+
 def validate_symbol(symbol: str) -> bool:
-    """
-    Ensures trading symbol format is valid (e.g. BTCUSDT)
-    """
+    """መርህ #1 እና #3፦ የሲምቦል ቅርጸት ማረጋገጥ።"""
     if not isinstance(symbol, str):
-        logger.error("Symbol must be a string")
+        logger.error("Validation Error: Symbol must be a string.")
         return False
-
-    pattern = r"^[A-Z0-9]{5,15}$"
-    if not re.match(pattern, symbol):
-        logger.error(f"Invalid symbol format: {symbol}")
+    # BTCUSDT, ETHUSDT ወዘተ እንዲያልፉ የተስተካከለ RegEx
+    if not re.match(r"^[A-Z0-9]{5,15}$", symbol):
+        logger.error(f"Validation Error: Invalid symbol format: {symbol}")
         return False
-
     return True
 
-
-# =========================
-# SIDE VALIDATION
-# =========================
 def validate_side(side: str) -> bool:
-    """
-    Validates trade direction
-    """
-    valid_sides = ["LONG", "SHORT", "BUY", "SELL", "HEDGE"]
-    if side not in valid_sides:
-        logger.error(f"Invalid side: {side}")
+    """የንግድ አቅጣጫ ማረጋገጥ።"""
+    if side not in ["LONG", "SHORT", "HEDGE"]:
+        logger.error(f"Validation Error: Invalid side '{side}'.")
         return False
     return True
 
-
-# =========================
-# QUANTITY VALIDATION
-# =========================
 def validate_quantity(qty: float) -> bool:
-    """
-    Ensures quantity is safe and non-zero
-    """
+    """መርህ #4 እና #9፦ የንግድ መጠን ደህንነት ማረጋገጥ።"""
     try:
-        qty = float(qty)
-    except Exception:
-        logger.error("Quantity must be numeric")
-        return False
+        q = float(qty)
+        if 0 < q <= 1_000_000:
+            return True
+        logger.error(f"Validation Error: Quantity {q} out of safe bounds.")
+    except (ValueError, TypeError):
+        logger.error("Validation Error: Quantity must be numeric.")
+    return False
 
-    if qty <= 0:
-        logger.error("Quantity must be > 0")
-        return False
-
-    if qty > 1_000_000:
-        logger.error("Quantity too large (risk blocked)")
-        return False
-
-    return True
-
-
-# =========================
-# CONFIDENCE VALIDATION
-# =========================
 def validate_confidence(confidence: float) -> bool:
-    """
-    Ensures AI confidence is within safe range
-    """
+    """መርህ #4፦ የሲግናል አስተማማኝነት ማረጋገጥ።"""
     try:
-        confidence = float(confidence)
-    except Exception:
-        logger.error("Confidence must be numeric")
-        return False
-
-    if confidence < 0 or confidence > 100:
-        logger.error("Confidence must be between 0 and 100")
-        return False
-
-    return True
-
+        c = float(confidence)
+        if 0 <= c <= 100:
+            return True
+        logger.error(f"Validation Error: Confidence {c} invalid.")
+    except (ValueError, TypeError):
+        logger.error("Validation Error: Confidence must be numeric.")
+    return False
 
 # =========================
-# SIGNAL VALIDATION (MAIN)
+# CENTRAL VALIDATION (MAIN)
 # =========================
 def validate_signal(signal: dict) -> bool:
     """
-    Central validation before execution engine
+    መርህ #11 (Liquidity & Volume Guard):- 
+    ሁሉም ሲግናሎች ወደ አፈጻጸም ከመላካቸው በፊት የሚጣሩበት ማዕከል ነው።
     """
     if not isinstance(signal, dict):
-        logger.error("Signal must be a dictionary")
         return False
-
-    required_fields = ["symbol", "side", "qty"]
-
-    for field in required_fields:
-        if field not in signal:
-            logger.error(f"Missing field: {field}")
-            return False
-
-    if not validate_symbol(signal["symbol"]):
-        return
+    
+    # የ필ዱ መስፈርቶች (Required Fields)
+    required = ["symbol", "side", "qty", "confidence"]
+    if not all(k in signal for k in required):
+        logger.error("Validation Error: Missing required signal fields.")
+        return False
+    
+    # ሁሉንም ማጣሪያዎች ማለፍ አለባቸው
+    is_valid = (
+        validate_symbol(signal["symbol"]) and
+        validate_side(signal["side"]) and
+        validate_quantity(signal["qty"]) and
+        validate_confidence(signal["confidence"])
+    )
+    
+    if is_valid:
+        logger.info(f"Signal validated for {signal['symbol']} [{signal['side']}]")
+    return is_valid
