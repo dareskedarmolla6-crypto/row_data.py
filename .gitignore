@@ -1,74 +1,58 @@
+
+# FSE CORE TRADING BOT - .gitignore
+
 # =========================
-# Python
+# Python & Runtime
 # =========================
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
-
-# Virtual environments
 venv/
 env/
 ENV/
 .venv/
+.cache/
 
 # =========================
-# Logs
-# =========================
-logs/
-*.log
-
-# =========================
-# Environment variables (VERY IMPORTANT for bot security)
+# Environment Variables & Secrets (CRITICAL)
 # =========================
 .env
-.env.local
-.env.production
-
-# =========================
-# API KEYS / SECRETS (CRITICAL)
-# =========================
+.env.*
 api_keys.json
 keys.json
 secret.txt
+session.json
+runtime_state.json
 
 # =========================
-# IDE / Editor files
+# Logs & Results
 # =========================
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# =========================
-# System files
-# =========================
-.DS_Store
-Thumbs.db
-
-# =========================
-# Cache / build
-# =========================
-.cache/
-build/
-dist/
-*.egg-info/
-
-# =========================
-# Test / Backtest outputs
-# =========================
+logs/
+*.log
 backtest_results/
 results/
 *.csv
 *.xlsx
 
 # =========================
-# Docker (if later used)
+# IDE & System Files
 # =========================
-docker-compose.override.yml
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
 
 # =========================
-# Telegram / runtime state
+# Build & Compiled
 # =========================
-session.json
-runtime_state.json
+build/
+dist/
+*.egg-info/
+
+# =========================
+# Docker
+# =========================
+docker-compose.override.yml
