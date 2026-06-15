@@ -1,3 +1,4 @@
+
 # ==========================================
 # FSE Strategy Configuration
 # ==========================================
@@ -16,33 +17,28 @@ market:
 strategies:
   long:
     enabled: true
-
   short:
     enabled: true
-
   hedge:
     enabled: true
     allow_simultaneous_positions: true
-
   grid:
     enabled: true
     levels: 5
     spacing_percent: 1.0
-
 
 confidence:
   minimum_trade: 15
 
 leverage:
   confidence_based: true
-
   levels:
     "15-25": 5
     "26-35": 8
     "36-55": 10
     "56-75": 15
     "76-85": 20
-    "86+": 30
+    "86+": 35
 
 risk_management:
   stop_loss_enabled: true
@@ -63,7 +59,6 @@ exchanges:
     - GATE_IO
     - MEXC
     - BITGET
-
   forex:
     - MT5
     - OANDA
@@ -76,21 +71,15 @@ future_markets:
     - GOLD
     - SILVER
     - OIL
-
   indices:
     enabled: true
-
   stocks:
     enabled: true
-
 
 logging:
   trade_logs: true
   error_logs: true
   performance_logs: true
-# Ensure strategy
-# Ensure strategy aligns with global risk config (prevents conflicting trading behavior)
-sync_with_risk_config: true
 
-# Enforce alpha-only mode consistency across system
+sync_with_risk_config: true
 enforce_alpha_mode: true
