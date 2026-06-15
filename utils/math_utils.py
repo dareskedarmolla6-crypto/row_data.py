@@ -1,123 +1,49 @@
+
+# fse/utils/math_utils.py
 import math
 
-
 # =========================
-# BASIC MATH HELPERS
+# MATHEMATICAL UTILITIES
 # =========================
-def clamp(value, min_value, max_value):
-    """Limits a value between min and max"""
-    return max(min_value, min(value, max_value))
 
+def clamp(value: float, min_val: float, max_val: float) -> float:
+    """መርህ #4፦ የዋጋዎችን ክልል መቆጣጠሪያ።"""
+    return max(min_val, min(value, max_val))
 
-def safe_div(a, b, default=0.0):
-    """Safe division to avoid ZeroDivisionError"""
+def safe_div(a: float, b: float, default: float = 0.0) -> float:
+    """በዜሮ የመካፈል ስህተትን መከላከያ።"""
     return a / b if b != 0 else default
 
+def pct_change(old: float, new: float) -> float:
+    """የፐርሰንት ለውጥ መለኪያ።"""
+    return ((new - old) / old * 100) if old != 0 else 0.0
 
 # =========================
-# PERCENTAGE UTILITIES
+# TRADING DYNAMICS (CORE LOGIC)
 # =========================
-def pct_change(old, new):
-    """Percentage change between two values"""
-    if old == 0:
-        return 0.0
-    return ((new - old) / old) * 100
 
-
-def normalize(value, min_value, max_value):
-    """Normalize value between 0 and 1"""
-    if max_value == min_value:
-        return 0.0
-    return (value - min_value) / (max_value - min_value)
-
-
-# =========================
-# RISK / POSITION SIZING HELPERS
-# =========================
-def position_size(balance, risk_pct, confidence):
-    """
-    Dynamic position sizing:
-    - risk_pct: percent of balance to risk
-    - confidence: 0–100
-    """
+def position_size(balance: float, risk_pct: float, confidence: float) -> float:
+    """መርህ #7 (Dynamic Capital Allocation): ካፒታልን እንደ ኮንፊደንስ ማከፋፈል።"""
     confidence_factor = clamp(confidence / 100, 0.1, 1.5)
     base = balance * (risk_pct / 100)
-
     return base * confidence_factor
 
+def leverage_by_confidence(confidence: float) -> int:
+    """መርህ #8 (Adaptive Leverage): ኮንፊደንስን መሰረት ያደረገ የሊቨሬጅ መጠን።"""
+    if confidence < 15: return 0
+    if confidence <= 25: return 5
+    if confidence <= 35: return 8
+    if confidence <= 55: return 10
+    if confidence <= 75: return 15
+    if confidence <= 85: return 20
+    return 30
 
-def leverage_by_confidence(confidence):
-    """
-    Confidence-based leverage mapping (safe version)
-    """
-    if confidence < 15:
-        return 0
-
-    if confidence <= 25:
-        return 5
-    elif confidence <= 35:
-        return 8
-    elif confidence <= 55:
-        return 10
-    elif confidence <= 75:
-        return 15
-    elif confidence <= 85:
-        return 20
-    else:
-        return 30
-
-
-# =========================
-# VOLATILITY HELPERS
-# =========================
-def volatility_score(prices):
-    """
-    Simple volatility estimator using price movement
-    """
-    if len(prices) < 2:
-        return 0.0
-
-    changes = []
-    for i in range(1, len(prices)):
-        changes.append(abs(prices[i] - prices[i - 1]))
-
+def volatility_score(prices: list) -> float:
+    """መርህ #4: የገበያ መረጋጋት ወይም መወዛወዝ መለኪያ።"""
+    if len(prices) < 2: return 0.0
+    changes = [abs(prices[i] - prices[i - 1]) for i in range(1, len(prices))]
     return sum(changes) / len(changes)
 
-
-def is_high_volatility(score, threshold=1.5):
-    return score >= threshold
-
-
-# =========================
-# TREND HELPERS
-# =========================
-def simple_trend(prices):
-    """
-    Returns:
-    - "UP"
-    - "DOWN"
-    - "SIDEWAYS"
-    """
-    if len(prices) < 3:
-        return "SIDEWAYS"
-
-    start = prices[0]
-    end = prices[-1]
-
-    change = pct_change(start, end)
-
-    if change > 1:
-        return "UP"
-    elif change < -1:
-        return "DOWN"
-    return "SIDEWAYS"
-
-
-# =========================
-# RISK SCORE COMPOSER
-# =========================
-def risk_score(confidence, volatility):
-    """
-    Combines confidence and volatility into a single score
-    """
+def risk_score(confidence: float, volatility: float) -> float:
+    """መርህ #4: የጋራ የሪስክ ነጥብ አሰጣጥ።"""
     return clamp(confidence - (volatility * 10), 0, 100)
