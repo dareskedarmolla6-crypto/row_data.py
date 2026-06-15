@@ -1,9 +1,11 @@
-# fse/execution/binance_executor.py
 
-import time
+# fse/execution/binance_executor.py
+import logging
 import uuid
 import hashlib
 
+# ለሎግ (Logging) ማዋቀር
+logger = logging.getLogger(__name__)
 
 # =========================
 # IDEMPOTENCY KEY
@@ -12,124 +14,83 @@ def generate_idempotency_key(symbol, side, qty, strategy_id, bucket):
     raw = f"{symbol}:{side}:{qty}:{strategy_id}:{bucket}"
     return hashlib.sha256(raw.encode()).hexdigest()
 
-
 # =========================
 # BINANCE EXECUTOR CORE
 # =========================
 class BinanceExecutor:
+    """ከBinance Futures API ጋር በቀጥታ የሚገናኝ ዋና መፈጸሚያ።"""
+    
     def __init__(self, client):
         self.client = client
 
-    # -------------------------
-    # LONG POSITION
-    # -------------------------
     def open_long(self, symbol, quantity, leverage=20):
         try:
-            self.client.futures_change_leverage(
-                symbol=symbol,
-                leverage=min(leverage, 20)
-            )
-
+            self.client.futures_change_leverage(symbol=symbol, leverage=min(leverage, 20))
             order = self.client.futures_create_order(
-                symbol=symbol,
-                side="BUY",
-                type="MARKET",
-                quantity=quantity
+                symbol=symbol, side="BUY", type="MARKET", quantity=quantity
             )
-
-            print(f"📈 LONG OPENED: {symbol} | Qty: {quantity}")
+            logger.info(f"📈 LONG OPENED: {symbol} | Qty: {quantity}")
             return order
-
         except Exception as e:
-            print(f"❌ LONG ERROR: {e}")
+            logger.error(f"❌ LONG ERROR for {symbol}: {e}")
             return {"status": "ERROR", "message": str(e)}
 
-    # -------------------------
-    # SHORT POSITION
-    # -------------------------
     def open_short(self, symbol, quantity, leverage=20):
         try:
-            self.client.futures_change_leverage(
-                symbol=symbol,
-                leverage=min(leverage, 20)
-            )
-
+            self.client.futures_change_leverage(symbol=symbol, leverage=min(leverage, 20))
             order = self.client.futures_create_order(
-                symbol=symbol,
-                side="SELL",
-                type="MARKET",
-                quantity=quantity
+                symbol=symbol, side="SELL", type="MARKET", quantity=quantity
             )
-
-            print(f"📉 SHORT OPENED: {symbol} | Qty: {quantity}")
+            logger.info(f"📉 SHORT OPENED: {symbol} | Qty: {quantity}")
             return order
-
         except Exception as e:
-            print(f"❌ SHORT ERROR: {e}")
+            logger.error(f"❌ SHORT ERROR for {symbol}: {e}")
             return {"status": "ERROR", "message": str(e)}
 
-    # -------------------------
-    # CLOSE POSITION
-    # -------------------------
     def close_position(self, symbol):
         try:
             positions = self.client.futures_position_information(symbol=symbol)
-
-            if not positions:
-                return {"status": "NO_POSITION"}
+            if not positions or float(positions[0]["positionAmt"]) == 0:
+                return {"status": "ALREADY_FLAT"}
 
             pos = positions[0]
             qty = abs(float(pos["positionAmt"]))
-
-            if qty == 0:
-                return {"status": "ALREADY_FLAT"}
-
             side = "SELL" if float(pos["positionAmt"]) > 0 else "BUY"
 
             order = self.client.futures_create_order(
-                symbol=symbol,
-                side=side,
-                type="MARKET",
-                quantity=qty
+                symbol=symbol, side=side, type="MARKET", quantity=qty
             )
-
-            print(f"🔴 POSITION CLOSED: {symbol}")
+            logger.info(f"🔴 POSITION CLOSED: {symbol}")
             return order
-
         except Exception as e:
-            print(f"❌ CLOSE ERROR: {e}")
+            logger.error(f"❌ CLOSE ERROR for {symbol}: {e}")
             return {"status": "ERROR", "message": str(e)}
 
-
 # =========================
-# EXECUTION ROUTER (MAIN BRAIN)
+# EXECUTION ROUTER
 # =========================
 class BinanceExecutionRouter:
+    """ሲግናሎችን ተቀብሎ ወደBinance ትዕዛዝ የሚቀይር ማዕከል (Orchestrator)።"""
+    
     def __init__(self, executor):
         self.executor = executor
 
     def execute(self, signal):
-        symbol = signal["symbol"]
-        side = signal["side"]
-        qty = signal["qty"]
+        symbol = signal.get("symbol")
+        side = signal.get("side")
+        qty = signal.get("qty", 0)
 
         if side == "LONG":
             return self.executor.open_long(symbol, qty)
-
-        if side == "SHORT":
+        elif side == "SHORT":
             return self.executor.open_short(symbol, qty)
-
-        if side == "CLOSE":
+        elif side == "CLOSE":
             return self.executor.close_position(symbol)
-
-        if side == "HEDGE":
-            long_leg = self.executor.open_long(symbol, qty / 2)
-            short_leg = self.executor.open_short(symbol, qty / 2)
-
+        elif side == "HEDGE":
             return {
                 "symbol": symbol,
-                "long": long_leg,
-                "short": short_leg,
+                "long": self.executor.open_long(symbol, qty / 2),
+                "short": self.executor.open_short(symbol, qty / 2),
                 "status": "HEDGE_ACTIVE"
             }
 
