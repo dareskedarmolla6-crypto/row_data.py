@@ -1,51 +1,44 @@
-import time
 
+# fse/data/raw_data.py
+import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 class RawDataStore:
     """
-    Stores raw market data before processing by brain/strategy.
-    Used for:
-    - backtesting
-    - signal validation
-    - debugging
+    ጥሬ የገበያ መረጃዎችን ለባክቴስቲንግ እና ለሲግናል ማረጋገጫ የሚያከማች ክፍል (መርህ #3)።
     """
 
-    def __init__(self):
+    def __init__(self, max_buffer_size=1000):
         self.buffer = []
+        self.max_buffer_size = max_buffer_size
 
-    # =========================
-    # ADD RAW MARKET DATA
-    # =========================
     def add(self, symbol: str, data: dict):
+        """ጥሬ የገበያ መረጃን ወደ ባፈር ማከል (Buffer management)።"""
         self.buffer.append({
             "symbol": symbol,
             "data": data,
             "ts": int(time.time())
         })
+        
+        # Buffer ከመጠን በላይ እንዳይሞላ ማረጋገጥ (Safety Guard)
+        if len(self.buffer) > self.max_buffer_size:
+            self.buffer.pop(0)
 
-    # =========================
-    # GET ALL RAW DATA
-    # =========================
     def get_all(self):
+        """ሁሉንም ጥሬ መረጃ ማግኘት።"""
         return self.buffer
 
-    # =========================
-    # GET LAST N RECORDS
-    # =========================
     def get_last(self, n=50):
+        """የመጨረሻዎቹን N መዝገቦች ብቻ ማግኘት።"""
         return self.buffer[-n:]
 
-    # =========================
-    # CLEAR BUFFER
-    # =========================
     def clear(self):
+        """ባፈሩን ማጽዳት።"""
         self.buffer = []
+        logger.info("🧹 Raw data buffer cleared.")
 
-    # =========================
-    # FILTER BY SYMBOL
-    # =========================
     def get_by_symbol(self, symbol: str):
-        return [
-            item for item in self.buffer
-            if item["symbol"] == symbol
-        ]
+        """በተለየ ምልክት (Symbol) የተጣራ መረጃ ማግኘት።"""
+        return [item for item in self.buffer if item["symbol"] == symbol]
