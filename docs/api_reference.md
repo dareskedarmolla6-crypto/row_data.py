@@ -1,96 +1,50 @@
-# FSE API REFERENCE - LEVERAGE SYSTEM
 
-## Overview
-This document defines the confidence-based leverage system used in the FSE trading engine.
+# FSE API REFERENCE - LEVERAGE & RISK SYSTEM
+
+## 1. Overview
+This document defines the confidence-based adaptive leverage system used in the FSE trading engine to optimize risk-adjusted returns.
 
 ---
 
-## 📊 Confidence → Leverage Mapping
-
-The system determines leverage based on AI confidence level:
+## 2. Confidence → Leverage Mapping (Core Logic)
+The system determines trade strength based on AI-calculated confidence levels.
 
 | Confidence Range | Leverage |
-|-----------------|----------|
-| < 15%           | NO TRADE |
-| 15 - 25%        | 5x       |
-| 26 - 35%        | 8x       |
-| 36 - 55%        | 10x      |
-| 56 - 75%        | 15x      |
-| 76 - 85%        | 20x      |
-| 86%+            | 30x      |
+| :--- | :--- |
+| < 15% | NO TRADE (Safety Cutoff) |
+| 15 – 25% | 5x |
+| 26 – 35% | 8x |
+| 36 – 55% | 10x |
+| 56 – 75% | 15x |
+| 76 – 85% | 20x |
+| 86%+ | 30x |
 
 ---
 
-## 🌪 Volatility Adjustment Rules
-
-Leverage is dynamically adjusted based on market volatility:
-
-- High volatility (≥ 0.8)
-  → Reduce leverage (risk protection)
-
-- Low volatility (≤ 0.3)
-  → Slight leverage increase (opportunity boost)
+## 3. Volatility & Risk Adjustment Rules
+Leverage is dynamically adjusted based on market environment:
+- **High Volatility (≥ 0.8):** Leverage reduced by 50% to mitigate liquidation risk.
+- **Low Volatility (≤ 0.3):** Leverage increased by 10-20% to boost opportunity capture.
+- **Hedge Mode:** Leverage is automatically capped to maintain dual-position safety.
 
 ---
 
-## 🛡 Hedge Mode Rules
-
-When hedge mode is active:
-
-- Leverage is reduced by safety factor
-- Purpose: reduce liquidation risk while maintaining dual positions
-
----
-
-## ⚠️ Risk Control Rules
-
-- Confidence below 15% → NO TRADE
-- Maximum leverage cap → 30x
-- All trades must pass risk engine validation before execution
+## 4. Execution Scope (Supported Markets)
+FSE operates across diverse asset classes:
+- **Crypto:** Binance, Bybit, OKX, KuCoin, Gate.io, MEXC, Bitget.
+- **Forex:** MT5, OANDA, IC Markets, Pepperstone, Exness.
+- **Future Markets:** Indices, Commodities (Gold, Silver, Oil), Stocks.
 
 ---
 
-## 🌍 Supported Markets (FSE Scope)
-
-### Crypto Exchanges
-- Binance
-- Bybit
-- OKX
-- KuCoin
-- Gate.io
-- MEXC
-- Bitget
-
-### Forex Brokers
-- MT5
-- OANDA
-- IC Markets
-- Pepperstone
-- Exness
-
-### Future Expansion
-- Indices
-- Commodities (Gold, Silver, Oil)
-- Stocks
+## 5. Risk Control & Safety Protocol
+- **Hard Limit:** Confidence below 15% results in immediate trade rejection.
+- **Exposure Cap:** Maximum allowable leverage is strictly 30x.
+- **Validation:** Every signal must pass the "Risk Engine" safety check before any order is routed to an exchange.
 
 ---
 
-## 🧠 System Behavior Summary
-
-FSE uses a hybrid model:
-
-- AI Confidence → determines trade strength
-- Volatility → adjusts risk exposure
-- Hedge mode → reduces leverage exposure
-- Risk engine → final execution approval layer
-
----
-
-## 🔐 Safety Note
-
-This system is designed for:
-- High-frequency crypto trading
-- Alpha coin volatility exploitation
-- Risk-controlled leverage scaling
-
-Use caution: high leverage increases liquidation risk.
+## 6. Safety Warning
+FSE is built for high-alpha environment exploitation.
+* **Caution:** High leverage significantly increases liquidation probability.
+* **Recommendation:** Always ensure stop-loss parameters are pre-configured before enabling high-leverage modes.
