@@ -1,177 +1,79 @@
+# fse/strategy/alpha_strategy.py
 import random
+import logging
 
-
-# =========================
-# MARKET FEED (SIMULATION)
-# =========================
-class FakeMarketSource:
-    def get_all(self):
-        coins = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "DOGEUSDT", "PEPEUSDT"]
-
-        return {
-            c: {
-                "volatility": random.uniform(0.1, 3.0),
-                "volume": random.uniform(1000, 1000000),
-                "momentum": random.uniform(-1, 1)
-            }
-            for c in coins
-        }
-
+logger = logging.getLogger(__name__)
 
 # =========================
-# ALPHA SCORING ENGINE
+# ALPHA SCORING & DISCOVERY
 # =========================
 class AlphaScorer:
+    """የገበያ መረጃን ወደ Alpha Score የሚቀይር።"""
     def score(self, data):
         return (
-            data.get("volatility", 0) * 50 +
-            data.get("momentum", 0) * 20 +
-            data.get("volume", 0) * 0.0001
+            data.get("volatility", 0.0) * 50.0 +
+            data.get("momentum", 0.0) * 20.0 +
+            data.get("volume", 0.0) * 0.0001
         )
 
-
-# =========================
-# FILTER ENGINE
-# =========================
-class AlphaFilter:
-    def __init__(self, min_score=60):
-        self.min_score = min_score
-
-    def is_valid(self, score):
-        return score >= self.min_score
-
-
-# =========================
-# COIN DISCOVERY ENGINE
-# =========================
 class AlphaCoinDiscoveryEngine:
-    def __init__(self, feed, scorer, filter_engine):
+    """ከፍተኛ የAlpha Score ያላቸውን ንብረቶች የሚቃኝ።"""
+    def __init__(self, feed, scorer, min_score=60.0):
         self.feed = feed
         self.scorer = scorer
-        self.filter = filter_engine
+        self.min_score = min_score
 
     def scan(self):
         snapshot = self.feed.get_all()
-
         results = []
-
         for symbol, data in snapshot.items():
             score = self.scorer.score(data)
-
-            if self.filter.is_valid(score):
-                results.append({
-                    "symbol": symbol,
-                    "score": score,
-                    "volatility": data["volatility"],
-                    "momentum": data["momentum"]
-                })
-
+            if score >= self.min_score:
+                results.append({"symbol": symbol, "score": score, **data})
         return sorted(results, key=lambda x: x["score"], reverse=True)
 
-
 # =========================
-# SMART MONEY DETECTION
+# SMART MONEY & VOLUME ANALYSIS
 # =========================
-class WhaleTracker:
-    def __init__(self, threshold=100000):
-        self.threshold = threshold
-
-    def detect(self, trades):
-        whales = []
-
-        for t in trades:
-            value = t["price"] * t["qty"]
-
-            if value >= self.threshold:
-                whales.append({
-                    "symbol": t["symbol"],
-                    "side": t["side"],
-                    "value": value
-                })
-
-        return whales
-
-
 class SmartMoneyDetector:
+    """የWhale ግብይቶችን በመተንተን አቅጣጫን የሚለይ።"""
     def analyze(self, whales):
-        buy = 0
-        sell = 0
-
-        for w in whales:
-            if w["side"] == "BUY":
-                buy += w["value"]
-            else:
-                sell += w["value"]
-
-        if buy > sell:
-            return "ACCUMULATION"
-        if sell > buy:
-            return "DISTRIBUTION"
+        buy_val = sum(w["value"] for w in whales if w["side"] == "BUY")
+        sell_val = sum(w["value"] for w in whales if w["side"] == "SELL")
+        
+        if buy_val > sell_val: return "ACCUMULATION"
+        if sell_val > buy_val: return "DISTRIBUTION"
         return "NEUTRAL"
 
-
-class WhaleSignalEngine:
-    def generate(self, state):
-        if state == "ACCUMULATION":
-            return {"side": "BUY", "confidence": 0.8}
-
-        if state == "DISTRIBUTION":
-            return {"side": "SELL", "confidence": 0.8}
-
-        return None
-
-
-# =========================
-# VOLUME ANALYSIS
-# =========================
 class VolumeSpikeDetector:
+    """ድንገተኛ የገበያ እንቅስቃሴን (Volume Spike) የሚለይ።"""
     def detect(self, current, average):
-        if average <= 0:
-            return False
-        return current / average >= 3.0
-
+        return (current / average) >= 3.0 if average > 0 else False
 
 # =========================
-# LISTING FILTER
-# =========================
-class ListingFilter:
-    def is_new(self, coin):
-        return coin.get("listed_hours", 999) <= 72
-
-
-# =========================
-# WATCHLIST MANAGER
-# =========================
-class WatchlistManager:
-    def __init__(self):
-        self.watchlist = {"HOT": [], "WARM": [], "COLD": []}
-
-    def add(self, coin, category):
-        if category in self.watchlist:
-            self.watchlist[category].append(coin)
-
-
-# =========================
-# CAPITAL ROTATION
-# =========================
-class CapitalRotationEngine:
-    def __init__(self):
-        self.slots = [0, 0, 0, 0]
-
-    def rotate(self, from_idx, to_idx, amount):
-        self.slots[from_idx] -= amount
-        self.slots[to_idx] += amount
-
-
-# =========================
-# MASTER ENTRY ENGINE
+# MASTER ALPHA HUNTER
 # =========================
 class MasterAlphaHunter:
-    def scan(self): return "SCAN"
-    def filter(self): return "FILTER"
-    def rank(self): return "RANK"
-    def watchlist(self): return "WATCHLIST"
-    def signal(self): return "SIGNAL"
-    def risk(self): return "RISK"
-    def execution(self): return "EXECUTION"
-    def monitor(self): return "MONITOR"
+    """የ Alpha ስልትን የሚያስተባብር ዋና ክፍል (መርህ #1)።"""
+    def __init__(self, feed):
+        self.discovery = AlphaCoinDiscoveryEngine(feed, AlphaScorer())
+        self.detector = SmartMoneyDetector()
+        logger.info("🎯 Alpha Hunter initialized.")
+
+    def execute(self, market_data):
+        """ስልቱን የሚያስፈጽም ዋና ተግባር።"""
+        candidates = self.discovery.scan()
+        if not candidates:
+            return {"strategy": "ALPHA", "action": "HOLD"}
+        
+        # ከፍተኛ ውጤት ያለው ሳንቲም ላይ ማተኮር
+        top_coin = candidates[0]
+        action = "LONG" if top_coin["momentum"] > 0 else "SHORT"
+        
+        logger.info(f"🔍 Alpha Found: {top_coin['symbol']} | Score: {top_coin['score']}")
+        return {
+            "strategy": "ALPHA",
+            "action": action,
+            "symbol": top_coin["symbol"],
+            "confidence": min(top_coin["score"], 100)
+        }
