@@ -1,1 +1,69 @@
-Egvbbnter
+import logging
+from datetime import datetime
+
+class P2PRiskEngine:
+    def __init__(self):
+        self.logger = logging.getLogger("FSE.P2P.RiskEngine")
+
+        # baseline thresholds
+        self.min_completion_rate = 95.0
+        self.min_trade_count = 50
+        self.max_negative_flags = 2
+
+    def analyze_order(self, order):
+        """
+        Advanced P2P risk evaluation system
+        """
+
+        merchant_rate = order.get("merchant_completion_rate", 0)
+        trade_count = order.get("trade_count", 0)
+        negative_flags = order.get("flags", [])
+
+        risk_score = 0
+        reasons = []
+
+        # =========================
+        # 1. Completion Rate Check
+        # =========================
+        if merchant_rate < self.min_completion_rate:
+            risk_score += 40
+            reasons.append("LOW_COMPLETION_RATE")
+
+        # =========================
+        # 2. Trade Volume Check
+        # =========================
+        if trade_count < self.min_trade_count:
+            risk_score += 20
+            reasons.append("LOW_TRADE_HISTORY")
+
+        # =========================
+        # 3. Behavioral Flags
+        # =========================
+        if len(negative_flags) > self.max_negative_flags:
+            risk_score += 40
+            reasons.append("SUSPICIOUS_FLAGS")
+
+        # =========================
+        # FINAL DECISION
+        # =========================
+        if risk_score >= 50:
+            self.logger.warning(
+                f"🚨 REJECTED | Risk={risk_score} | Reasons={reasons}"
+            )
+            return {
+                "approved": False,
+                "risk_score": risk_score,
+                "reasons": reasons,
+                "timestamp": datetime.now().isoformat()
+            }
+
+        self.logger.info(
+            f"✅ APPROVED | Risk={risk_score}"
+        )
+
+        return {
+            "approved": True,
+            "risk_score": risk_score,
+            "reasons": reasons,
+            "timestamp": datetime.now().isoformat()
+        }
