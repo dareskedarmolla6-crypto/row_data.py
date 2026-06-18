@@ -1,1 +1,69 @@
-Eggvvnter
+import logging
+from datetime import datetime
+
+class P2PScanner:
+    def __init__(self, api_connector):
+        self.api = api_connector
+        self.logger = logging.getLogger("FSE.P2P.Scanner")
+
+    def scan_market(self, asset="USDT", fiat="ETB", trade_type="BUY"):
+        """
+        ገበያውን የሚቃኝ ዋና ተግባር (Improved version)
+        """
+        try:
+            self.logger.info(
+                f"[{datetime.now()}] Scanning P2P market: {asset}/{fiat} ({trade_type})"
+            )
+
+            # API call
+            orders = self.api.get_p2p_orders(
+                trade_type=trade_type,
+                asset=asset,
+                fiat=fiat
+            )
+
+            # Validation layer
+            if not orders:
+                self.logger.warning("Empty response from API")
+                return []
+
+            if "data" not in orders:
+                self.logger.error("Invalid API response structure")
+                return []
+
+            data = orders["data"]
+
+            if not isinstance(data, list):
+                self.logger.error("Unexpected data format (not a list)")
+                return []
+
+            self.logger.info(f"Found {len(data)} P2P orders")
+
+            # Return filtered safe data only
+            return self._filter_orders(data)
+
+        except Exception as e:
+            self.logger.exception(f"P2P scan failed: {str(e)}")
+            return []
+
+    def _filter_orders(self, orders):
+        """
+        Basic filtering layer (future risk scoring can plug here)
+        """
+        filtered = []
+
+        for order in orders:
+            try:
+                if not order:
+                    continue
+
+                # Basic safety checks (expandable)
+                if "price" not in order or "quantity" not in order:
+                    continue
+
+                filtered.append(order)
+
+            except Exception:
+                continue
+
+        return filtered
