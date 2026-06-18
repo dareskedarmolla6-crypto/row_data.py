@@ -1,1 +1,66 @@
-Egbbbnter
+import logging
+from datetime import datetime
+import time
+
+class P2PExecutor:
+    def __init__(self, api_connector, risk_engine, max_retries=3):
+        self.api = api_connector
+        self.risk = risk_engine
+        self.max_retries = max_retries
+        self.logger = logging.getLogger("FSE.P2P.Executor")
+
+    def validate_order(self, order):
+        required_fields = ["orderId", "amount"]
+
+        for field in required_fields:
+            if field not in order or order[field] is None:
+                self.logger.error(f"Invalid order: missing {field}")
+                return False
+
+        if order["amount"] <= 0:
+            self.logger.error("Invalid order: amount must be > 0")
+            return False
+
+        return True
+
+    def execute_trade(self, order):
+        """የ P2P ግብይት ፍጻሜ ሂደት"""
+
+        # 1. Validation
+        if not self.validate_order(order):
+            return False
+
+        # 2. Risk check
+        if not self.risk.analyze_order(order):
+            self.logger.error("Trade blocked by risk engine.")
+            return False
+
+        order_id = order.get("orderId")
+        amount = order.get("amount")
+
+        self.logger.info(f"[{datetime.now()}] Executing trade: {order_id}")
+
+        # 3. Retry execution
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                success = self.api.place_order(order_id, amount)
+
+                if success:
+                    self.logger.info("Trade successfully placed!")
+                    self.audit_log(order, "SUCCESS")
+                    return True
+
+                self.logger.warning(f"Attempt {attempt} failed")
+
+            except Exception as e:
+                self.logger.error(f"Execution error: {e}")
+
+            time.sleep(1.5 * attempt)
+
+        self.audit_log(order, "FAILED")
+        self.logger.error("All retry attempts failed.")
+        return False
+
+    def audit_log(self, order, status):
+        """Trade history tracking"""
+        self.logger.info(f"AUDIT | Order: {order['orderId']} | Status: {status}")
