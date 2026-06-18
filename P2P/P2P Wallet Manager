@@ -1,1 +1,39 @@
-Essenter
+import logging
+
+class P2PWalletManager:
+    def __init__(self, api_connector):
+        self.api = api_connector
+        self.logger = logging.getLogger("FSE.P2P.WalletManager")
+
+    def transfer_to_spot(self, asset, amount):
+        """Transfer funds from P2P/Funding wallet to Spot wallet"""
+
+        try:
+            self.logger.info(f"Initiating transfer: {amount} {asset} → Spot Wallet")
+
+            response = self.api.transfer_funds(
+                asset=asset,
+                amount=amount,
+                from_wallet="P2P",
+                to_wallet="SPOT"
+            )
+
+            if response.get("status") == "success":
+                self.logger.info("Transfer successful!")
+                return {
+                    "success": True,
+                    "tx_id": response.get("tx_id")
+                }
+
+            self.logger.error(f"Transfer failed: {response}")
+            return {
+                "success": False,
+                "error": response
+            }
+
+        except Exception as e:
+            self.logger.exception("Wallet transfer exception occurred")
+            return {
+                "success": False,
+                "error": str(e)
+            }
