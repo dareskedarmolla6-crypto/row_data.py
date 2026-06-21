@@ -1,9 +1,8 @@
-
-# fse/execution/execution_engine.py
 import time
 import uuid
 import hashlib
 import logging
+from execution.connection_tester import test_api_connection
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +65,11 @@ class ExecutionCoordinator:
         self.lock = lock
 
     def execute_signal(self, signal):
+        # [Fail-Safe Check] ቦቱ ትሬድ ከመፈጸሙ በፊት ሰርቨሩ መኖሩን ያረጋግጣል
+        if not test_api_connection():
+            logger.critical("🚨 CONNECTION LOST: ትዕዛዝ መላክ አልተቻለም፣ ስራው ቆሟል!")
+            raise Exception("SYSTEM HALTED - NO CONNECTION TO EXCHANGE")
+
         if self.store.get("system_status") in ["STOP", "EMERGENCY"]:
             raise Exception("SYSTEM HALTED - EMERGENCY STOP")
 
